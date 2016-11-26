@@ -42,8 +42,12 @@ class Brain {
     }
   }
   public double useBrainGetError(double[] inputs, double desiredOutputs[], boolean mutate){
+    int[] nonzero = {BRAIN_LAYER_SIZES[0]-1};
     for(int i = 0; i < BRAIN_LAYER_SIZES[0]; i++){
       neurons[0][i] = inputs[i];
+      if (inputs[i] != 0){
+        nonzero = append(nonzero, i);
+      }
     }
     for(int x = 0; x < BRAIN_LAYER_SIZES.length; x++){
       neurons[x][BRAIN_LAYER_SIZES[x]-1] = 1.0;
@@ -51,23 +55,32 @@ class Brain {
     for(int x = 1; x < BRAIN_LAYER_SIZES.length; x++){
       for(int y = 0; y < BRAIN_LAYER_SIZES[x]-1; y++){
         float total = 0;
-        for(int input = 0; input < BRAIN_LAYER_SIZES[x-1]-1; input++){
-          total += neurons[x-1][input]*axons[x-1][input][y];
+        if (x == 1) {
+          for(int i = 0; i < nonzero.length; i++){
+            total += neurons[x-1][nonzero[i]]*axons[x-1][nonzero[i]][y];
+          }
+        }
+        else{
+          for(int input = 0; input < BRAIN_LAYER_SIZES[x-1]-1; input++){
+            total += neurons[x-1][input]*axons[x-1][input][y];
+          }
         }
         neurons[x][y] = sigmoid(total);
       }
     }
     if(mutate){
-      for(int y = 0; y < BRAIN_LAYER_SIZES[0]; y++){
+      
+      for(int y = 0; y < nonzero.length; y++){
         for(int z = 0; z < BRAIN_LAYER_SIZES[1]-1; z++){
           double delta = 0;
           for(int n = 0; n < BRAIN_LAYER_SIZES[2]-1; n++){
             delta += 2*(neurons[2][n]-desiredOutputs[n])*neurons[2][n]*
-            (1-neurons[2][n])*axons[1][z][n]*neurons[1][z]*(1-neurons[1][z])*neurons[0][y]*alpha;
+            (1-neurons[2][n])*axons[1][z][n]*neurons[1][z]*(1-neurons[1][z])*neurons[0][nonzero[y]]*alpha;
           }
-          axons[0][y][z] -= delta;
+          axons[0][nonzero[y]][z] -= delta;
         }
       }
+      
       for(int y = 0; y < BRAIN_LAYER_SIZES[1]; y++){
         for(int z = 0; z < BRAIN_LAYER_SIZES[2]-1; z++){
           double delta = 2*(neurons[2][z]-desiredOutputs[z])*neurons[2][z]*
