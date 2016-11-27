@@ -5,6 +5,7 @@ int TRAINS_PER_FRAME = 20;
 PFont font;
 Brain brain;
 int LANGUAGE_COUNT = 13;
+int MIDDLE_LAYER_NEURON_COUNT = 19;
 String[][] trainingData = new String[LANGUAGE_COUNT][];
 int SAMPLE_LENGTH = 15;
 int INPUTS_PER_CHAR = 27;
@@ -35,7 +36,7 @@ void setup(){
     recentGuesses[i] = false;
   }
   font = loadFont("Helvetica-Bold-96.vlw"); 
-  int[] bls = {INPUT_LAYER_HEIGHT,4,OUTPUT_LAYER_HEIGHT};
+  int[] bls = {INPUT_LAYER_HEIGHT,MIDDLE_LAYER_NEURON_COUNT,OUTPUT_LAYER_HEIGHT};
   brain = new Brain(bls,INPUTS_PER_CHAR, languages);
   size((int)(1920*WINDOW_SCALE_SIZE),(int)(1080*WINDOW_SCALE_SIZE));
   frameRate(200);
