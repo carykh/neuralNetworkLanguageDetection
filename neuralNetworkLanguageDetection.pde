@@ -26,6 +26,8 @@ boolean lastOneWasCorrect = false;
 String[] languages = {"Random","Key Mash","English","Spanish","French","German","Japanese",
 "Swahili","Mandarin","Esperanto","Dutch","Polish","Lojban"};
 int[] langSizes = new int[LANGUAGE_COUNT];
+int[][] longTermResults = new int[LANGUAGE_COUNT][LANGUAGE_COUNT];
+int logNumber = 0;
 void setup(){
   for(int i = 0; i < LANGUAGE_COUNT; i++){
     trainingData[i] = loadStrings("output"+i+".txt");
@@ -40,6 +42,7 @@ void setup(){
   brain = new Brain(bls,INPUTS_PER_CHAR, languages);
   size((int)(1920*WINDOW_SCALE_SIZE),(int)(1080*WINDOW_SCALE_SIZE));
   frameRate(200);
+  prepareExitHandler();
 }
 
 void draw(){
@@ -57,6 +60,9 @@ void draw(){
       brain.alpha *= 2;
     }else if(c == 51 && lastPressedKey != 51){
       brain.alpha *= 0.5;
+    }else if(c == 53 && lastPressedKey != 53){
+      outputLog("log"+logNumber);
+      logNumber++;
     }else if(c >= 97 && c <= 122 && !(lastPressedKey >= 97 && lastPressedKey <= 122)){
       training = false;
       if(!typing){
@@ -123,6 +129,7 @@ void draw(){
       s = "WRONG";
       fill(255,0,0);
     }
+    
   }
   text(languages[brain.topOutput]+" ("+s+")",ex,100);
   fill(0);
@@ -136,6 +143,7 @@ void draw(){
   text("2 to do one training.",ex,450);
   text("3 to decrease step size.",ex,500);
   text("4 to increase step size.",ex,550);
+  text("5 to output results: log"+logNumber,ex,600);
   
   translate(550,40);
   brain.drawBrain(55);
@@ -165,6 +173,8 @@ void train(){
     recentGuesses[iteration%guessWindow] = false;
     lastOneWasCorrect = false;
   }
+    longTermResults[brain.topOutput][desiredOutput]++;
+
 }
 int binarySearch(int lang, int n){
   return binarySearch(lang,n,0,trainingData[lang].length-1);
@@ -211,4 +221,39 @@ double getBrainErrorFromLine(String word, int desiredOutput, boolean train){
     iteration++;
   }
   return brain.useBrainGetError(inputs, desiredOutputs,train);
+}
+private void outputLog(String name){
+  try{
+        int numberOfCorrectAnswers=0;
+        int totalAnswers=0;
+        int numberOfTimes;
+        String resultLine;
+        PrintWriter results = new PrintWriter(name+".txt","UTF-8");
+        
+        for(int correctAnswer = 0; correctAnswer < LANGUAGE_COUNT; correctAnswer++){
+          for(int answer = 0; answer < LANGUAGE_COUNT; answer++){ 
+            
+            numberOfTimes = longTermResults[answer][correctAnswer];
+            resultLine = "WAS " + languages[correctAnswer] + ", SAID " + languages[answer] +  " " + numberOfTimes +" TIMES.";
+            results.println(resultLine);
+            totalAnswers += numberOfTimes;
+            
+            if(answer == correctAnswer){
+              numberOfCorrectAnswers += numberOfTimes;
+            }            
+          }
+        }
+        
+        double percentageCorrect = 100*numberOfCorrectAnswers/totalAnswers;
+        resultLine = percentageCorrect + "% Correct";
+        results.println(resultLine);
+        results.close();
+      }catch(Exception e){}
+}
+private void prepareExitHandler () {//'cuz stop() is apparently deprecated
+  Runtime.getRuntime().addShutdownHook(new Thread(new Runnable(){
+    public void run () {            
+      outputLog("final_log");      
+    }
+  }));
 }
