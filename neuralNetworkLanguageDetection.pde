@@ -13,6 +13,8 @@ int INPUT_LAYER_HEIGHT = INPUTS_PER_CHAR*SAMPLE_LENGTH+1;
 int OUTPUT_LAYER_HEIGHT = LANGUAGE_COUNT+1;
 int lineAt = 0;
 int iteration = 0;
+int streak;
+int longStreak;
 int guessWindow = 1000;
 boolean[] recentGuesses = new boolean[guessWindow];
 int recentRightCount = 0;
@@ -93,6 +95,8 @@ void draw(){
   text(word.toUpperCase(),20,300);
   fill(0);
   text("Expected output:",20,350);
+  text("Current streak: "+streak,20,900);
+  text("Longest streak: "+longStreak,20,950);
   String o = languages[desiredOutput];
   if(typing){
     o = "???";
@@ -119,10 +123,17 @@ void draw(){
     if(lastOneWasCorrect){
       s = "RIGHT";
       fill(0,140,0);
+     streak++;
+     
     }else{
       s = "WRONG";
       fill(255,0,0);
+      streak = 0;
     }
+     if(streak > longStreak){
+        longStreak = streak;
+      }
+      
   }
   text(languages[brain.topOutput]+" ("+s+")",ex,100);
   fill(0);
