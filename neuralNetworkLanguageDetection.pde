@@ -21,13 +21,17 @@ String word = "-";
 int desiredOutput = 0;
 int lastPressedKey = -1;
 boolean typing = false;
-int[] countedLanguages = {2,8};
+int[] countedLanguages = {2,4,5,8};
 boolean lastOneWasCorrect = false;
 String[] languages = {"Random","Key Mash","English","Spanish","French","German","Japanese",
 "Swahili","Mandarin","Esperanto","Dutch","Polish","Lojban"};
 int[] langSizes = new int[LANGUAGE_COUNT];
 int[][] longTermResults = new int[LANGUAGE_COUNT][LANGUAGE_COUNT];
 int logNumber = 0;
+int streak = 0;
+int longStreak = 0;
+
+
 void setup(){
   for(int i = 0; i < LANGUAGE_COUNT; i++){
     trainingData[i] = loadStrings("output"+i+".txt");
@@ -144,6 +148,8 @@ void draw(){
   text("3 to decrease step size.",ex,500);
   text("4 to increase step size.",ex,550);
   text("5 to output results: log"+logNumber,ex,600);
+  text("Current streak: "+streak,ex,900);
+  text("Longest streak: "+longStreak,ex,950);
   
   translate(550,40);
   brain.drawBrain(55);
@@ -166,12 +172,17 @@ void train(){
     }
     recentGuesses[iteration%guessWindow] = true;
     lastOneWasCorrect = true;
+    streak++;
   }else{
     if(recentGuesses[iteration%guessWindow]){
       recentRightCount--;
     }
     recentGuesses[iteration%guessWindow] = false;
     lastOneWasCorrect = false;
+    if(streak > longStreak){
+      longStreak = streak;
+    }
+    streak = 0;
   }
     longTermResults[brain.topOutput][desiredOutput]++;
 
@@ -224,29 +235,36 @@ double getBrainErrorFromLine(String word, int desiredOutput, boolean train){
 }
 private void outputLog(String name){
   try{
-        int numberOfCorrectAnswers=0;
+        int amountCorrect=0;
         int totalAnswers=0;
         int numberOfTimes;
         String resultLine;
-        PrintWriter results = new PrintWriter(name+".txt","UTF-8");
-        
-        for(int correctAnswer = 0; correctAnswer < LANGUAGE_COUNT; correctAnswer++){
+        PrintWriter results = createWriter("results/"+name+".txt");
+        results.print("      ");
+        for(int i = 0; i<LANGUAGE_COUNT; i++){
+          results.print(languages[i] + "   ");
+        }
+        results.println();
+        results.println();
+        for(int given = 0; given < LANGUAGE_COUNT; given++){
+          results.print(languages[given]+"  ");
           for(int answer = 0; answer < LANGUAGE_COUNT; answer++){ 
             
-            numberOfTimes = longTermResults[answer][correctAnswer];
-            resultLine = "WAS " + languages[correctAnswer] + ", SAID " + languages[answer] +  " " + numberOfTimes +" TIMES.";
-            results.println(resultLine);
+            numberOfTimes = longTermResults[answer][given];
+            results.print(longTermResults[answer][given]+",  ");
             totalAnswers += numberOfTimes;
             
-            if(answer == correctAnswer){
-              numberOfCorrectAnswers += numberOfTimes;
+            if(answer == given){
+              amountCorrect += numberOfTimes;
             }            
           }
+          results.println();
         }
         
-        double percentageCorrect = 100*numberOfCorrectAnswers/totalAnswers;
-        resultLine = percentageCorrect + "% Correct";
-        results.println(resultLine);
+        double percentageCorrect = 100*amountCorrect/totalAnswers;
+        results.println(percentageCorrect + "% Correct");
+        results.println("Longest Streak:"+longStreak);
+        results.flush();
         results.close();
       }catch(Exception e){}
 }
