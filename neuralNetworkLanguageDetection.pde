@@ -1,3 +1,9 @@
+/*
+Good options to change:
+WINDOWS_SCALE_SIZE
+MINIMUM_WORD_LENGTH
+countedLanguages
+*/
 float WINDOW_SCALE_SIZE = 0.5;
 int MINIMUM_WORD_LENGTH = 5;
 float STARTING_AXON_VARIABILITY = 1.0;
@@ -13,6 +19,9 @@ int INPUT_LAYER_HEIGHT = INPUTS_PER_CHAR*SAMPLE_LENGTH+1;
 int OUTPUT_LAYER_HEIGHT = LANGUAGE_COUNT+1;
 int lineAt = 0;
 int iteration = 0;
+int streak;
+int longStreak;
+int smooth = 0;
 int guessWindow = 1000;
 boolean[] recentGuesses = new boolean[guessWindow];
 int recentRightCount = 0;
@@ -44,6 +53,7 @@ void setup(){
 
 void draw(){
   scale(WINDOW_SCALE_SIZE);
+  smooth(smooth);
   if(keyPressed){
     int c = (int)(key);
     if(c == 49 && lastPressedKey != 49){
@@ -72,6 +82,11 @@ void draw(){
       }
       typing = true;
       getBrainErrorFromLine(word,0,false);
+    }else if(c == 53 && lastPressedKey != 53){
+      smooth++;
+      if(smooth == 2){
+        smooth = 0;
+      }
     }
     lastPressedKey = c;
   }else{
@@ -93,6 +108,8 @@ void draw(){
   text(word.toUpperCase(),20,300);
   fill(0);
   text("Expected output:",20,350);
+  text("Current streak: "+streak,20,900);
+  text("Longest streak: "+longStreak,20,950);
   String o = languages[desiredOutput];
   if(typing){
     o = "???";
@@ -108,7 +125,7 @@ void draw(){
   for(int i = 0; i < countedLanguages.length; i++){
     text(languages[countedLanguages[i]],20,750+i*50);
   }
-  
+   
   int ex = 1330;
   text("Actual prediction:",ex,50);
   String s = "";
@@ -119,10 +136,19 @@ void draw(){
     if(lastOneWasCorrect){
       s = "RIGHT";
       fill(0,140,0);
+      if(training == true){
+        streak++;
+      }
+      
     }else{
       s = "WRONG";
       fill(255,0,0);
+      streak = 0;
     }
+     if(streak > longStreak){
+        longStreak = streak;
+      }
+      
   }
   text(languages[brain.topOutput]+" ("+s+")",ex,100);
   fill(0);
@@ -136,7 +162,10 @@ void draw(){
   text("2 to do one training.",ex,450);
   text("3 to decrease step size.",ex,500);
   text("4 to increase step size.",ex,550);
-  
+  text("5 to toggle smoothing.",ex,600);
+  if(smooth == 1){
+    text("Smoothing is on.",ex,1000);
+  }
   translate(550,40);
   brain.drawBrain(55);
   lineAt++;
@@ -165,6 +194,7 @@ void train(){
     recentGuesses[iteration%guessWindow] = false;
     lastOneWasCorrect = false;
   }
+
 }
 int binarySearch(int lang, int n){
   return binarySearch(lang,n,0,trainingData[lang].length-1);
