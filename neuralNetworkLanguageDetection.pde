@@ -178,7 +178,7 @@ void draw(){
   text("5 to output results: log"+logNumber,ex,600);
   text("6 to toggle smoothing.",ex,650);
   if(smooth == 1){
-    text("Smoothing is on.",ex,8100);
+    text("Smoothing is on.",ex,800);
   }
   text("Current streak: "+streak,ex,900);
   text("Longest streak: "+longStreak,ex,950);
