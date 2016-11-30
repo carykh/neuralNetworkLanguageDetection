@@ -146,7 +146,7 @@ class Brain {
                 noStroke();
                 double val = neurons[x][y];
                 fill(neuronFillColor(val));
-                ellipse(x * drawWidth * scaleUp, apY(x, y) * scaleUp, neuronSize * scaleUp, neuronSize *s caleUp);
+                ellipse(x * drawWidth * scaleUp, apY(x, y) * scaleUp, neuronSize * scaleUp, neuronSize * scaleUp);
                 fill(neuronTextColor(val));
                 text(coolify(val), x * drawWidth * scaleUp, (apY(x, y) + (neuronSize * 0.52)) * scaleUp);
                 if (x == BRAIN_LAYER_SIZES.length - 1 && y < BRAIN_LAYER_SIZES[x] - 1) {
@@ -170,7 +170,7 @@ class Brain {
         double v = axons[x1][y1][y2] * neurons[x1][y1];
         if (Math.abs(v) >= 0.001){
             stroke(axonStrokeColor(axons[x1][y1][y2]));
-            line(x1 *drawWidth *scaleUp, apY(x1, y1) * scaleUp, x2 * drawWidth * scaleUp, apY(x2, y2) * scaleUp);
+            line(x1 * drawWidth * scaleUp, apY(x1, y1) * scaleUp, x2 * drawWidth * scaleUp, apY(x2, y2) * scaleUp);
         }
     }
 
