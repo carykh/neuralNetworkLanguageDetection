@@ -1,3 +1,6 @@
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 final float WINDOW_SCALE_SIZE = 0.5;
 final int MINIMUM_WORD_LENGTH = 5;
 final float STARTING_AXON_VARIABILITY = 1.0;
@@ -175,7 +178,7 @@ void draw(){
   text("5 to output results: log"+logNumber,ex,600);
   text("6 to toggle smoothing.",ex,650);
   if(smooth == 1){
-    text("Smoothing is on.",ex,850);
+    text("Smoothing is on.",ex,8100);
   }
   text("Current streak: "+streak,ex,900);
   text("Longest streak: "+longStreak,ex,950);
@@ -274,8 +277,8 @@ private void outputLog(String name){
   PrintWriter results = null;
   try{
         int amountCorrect=0;
-        int totalAnswers=0;
         int numberOfTimes;
+        double percentageOfTimes;
         String resultLine;
         results = createWriter("results/"+name+".txt");
         int spacesNeeded;
@@ -283,52 +286,52 @@ private void outputLog(String name){
         for(int t = 0; t<RESULT_CELL_LENGTH; t++){
           results.print(" ");
           
-          System.out.print(" ");
+          //System.out.print(" ");
         }
         
         for(int i = 0; i<LANGUAGE_COUNT; i++){
           results.print(languages[i]);
-          System.out.print(languages[i]);
+          //System.out.print(languages[i]);
           spacesNeeded = RESULT_CELL_LENGTH-languages[i].length();
           
           for(int t = 0; t<spacesNeeded; t++){
             results.print(" ");
             
-            System.out.print(" ");
+            //System.out.print(" ");
           }
         }
         
         results.println();
         results.println();
         
-        System.out.println();
-        System.out.println();
+        //System.out.println();
+        //System.out.println();
         
-        for(int given = 0; given <= LANGUAGE_COUNT; given++){
+        for(int given = 0; given < LANGUAGE_COUNT; given++){
           results.print(languages[given]);
           
-          System.out.print(languages[given]);
+          //System.out.print(languages[given]);
           spacesNeeded = RESULT_CELL_LENGTH-languages[given].length();
           
           for(int t = 0; t<spacesNeeded; t++){
             results.print(" ");
             
-            System.out.print(" ");
+            //System.out.print(" ");
           }
           for(int answer = 0; answer < LANGUAGE_COUNT; answer++){ 
             
             numberOfTimes = longTermResults[answer][given];
-            resultLine = longTermResults[answer][given] + "";
+            percentageOfTimes = round(((double)numberOfTimes) / ((double)iteration) * 100, 2);
+            resultLine = percentageOfTimes + "%";
             results.print(resultLine);
             
-            System.out.print(resultLine);
-            totalAnswers += numberOfTimes;
+           // System.out.print(resultLine);
             
             spacesNeeded = RESULT_CELL_LENGTH-resultLine.length();
             for(int t = 0; t<spacesNeeded; t++){
               results.print(" ");
               
-              System.out.print(" ");
+             // System.out.print(" ");
             }
             
             if(answer == given){
@@ -336,14 +339,23 @@ private void outputLog(String name){
             }            
           }
           results.println();
-          System.out.println();
+          //System.out.println();
         }
         
-        double percentageCorrect = 100*amountCorrect/totalAnswers;
+        double percentageCorrect = round(((double)amountCorrect) / ((double)iteration) * 100, 2);
         results.println(percentageCorrect + "% Correct");
         results.println("Longest Streak:"+longStreak);
+        results.println("Iteration #" + iteration);
         
-      }catch(Exception e){}
+        //System.out.println(percentageCorrect + "% Correct");
+        //System.out.println("Longest Streak:"+longStreak);
+        //System.out.println("Iteration #" + iteration);
+
+        
+        
+      }catch(Exception e){
+        System.out.println(e.toString());
+      }
       finally{
         if(results != null){
           results.flush();
@@ -351,6 +363,15 @@ private void outputLog(String name){
         }
       }
 }
+
+public static double round(double value, int places) {
+    if (places < 0) throw new IllegalArgumentException();
+
+    BigDecimal bd = new BigDecimal(value);
+    bd = bd.setScale(places, RoundingMode.HALF_UP);
+    return bd.doubleValue();
+}
+
 private void prepareExitHandler () {//'cuz stop() is apparently deprecated
   Runtime.getRuntime().addShutdownHook(new Thread(new Runnable(){
     public void run () {            
