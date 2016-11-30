@@ -1,16 +1,18 @@
-float WINDOW_SCALE_SIZE = 0.5;
-int MINIMUM_WORD_LENGTH = 5;
-float STARTING_AXON_VARIABILITY = 1.0;
-int TRAINS_PER_FRAME = 20;
+final float WINDOW_SCALE_SIZE = 0.5;
+final int MINIMUM_WORD_LENGTH = 5;
+final float STARTING_AXON_VARIABILITY = 1.0;
+final int TRAINS_PER_FRAME = 20;
+final int LANGUAGE_COUNT = 13;
+final int MIDDLE_LAYER_NEURON_COUNT = 19;
+final String[][] trainingData = new String[LANGUAGE_COUNT][];
+final int SAMPLE_LENGTH = 15;
+final int INPUTS_PER_CHAR = 27;
+final int INPUT_LAYER_HEIGHT = INPUTS_PER_CHAR*SAMPLE_LENGTH+1;
+final int OUTPUT_LAYER_HEIGHT = LANGUAGE_COUNT+1;
+final int RESULT_CELL_LENGTH = 12;
+
 PFont font;
 Brain brain;
-int LANGUAGE_COUNT = 13;
-int MIDDLE_LAYER_NEURON_COUNT = 19;
-String[][] trainingData = new String[LANGUAGE_COUNT][];
-int SAMPLE_LENGTH = 15;
-int INPUTS_PER_CHAR = 27;
-int INPUT_LAYER_HEIGHT = INPUTS_PER_CHAR*SAMPLE_LENGTH+1;
-int OUTPUT_LAYER_HEIGHT = LANGUAGE_COUNT+1;
 int lineAt = 0;
 int iteration = 0;
 int guessWindow = 1000;
@@ -26,10 +28,14 @@ boolean lastOneWasCorrect = false;
 String[] languages = {"Random","Key Mash","English","Spanish","French","German","Japanese",
 "Swahili","Mandarin","Esperanto","Dutch","Polish","Lojban"};
 int[] langSizes = new int[LANGUAGE_COUNT];
+
 int[][] longTermResults = new int[LANGUAGE_COUNT][LANGUAGE_COUNT];
 int logNumber = 0;
+
 int streak = 0;
 int longStreak = 0;
+
+int smooth = 0;
 
 
 void setup(){
@@ -38,9 +44,11 @@ void setup(){
     String s = trainingData[i][trainingData[i].length-1];
     langSizes[i] = Integer.parseInt(s.substring(s.indexOf(",")+1,s.length()));
   }
+  
   for(int i = 0; i < guessWindow; i++){
     recentGuesses[i] = false;
   }
+  
   font = loadFont("Helvetica-Bold-96.vlw"); 
   int[] bls = {INPUT_LAYER_HEIGHT,MIDDLE_LAYER_NEURON_COUNT,OUTPUT_LAYER_HEIGHT};
   brain = new Brain(bls,INPUTS_PER_CHAR, languages);
@@ -51,23 +59,36 @@ void setup(){
 
 void draw(){
   scale(WINDOW_SCALE_SIZE);
+  smooth(smooth);  
+  
   if(keyPressed){
     int c = (int)(key);
     if(c == 49 && lastPressedKey != 49){
       training = !training;
       typing = false;
-    }else if(c == 50 && lastPressedKey != 50){
+    }
+    else if(c == 50 && lastPressedKey != 50){
       training = false;
       typing = false;
       train();
-    }else if(c == 52 && lastPressedKey != 52){
+    }
+    else if(c == 52 && lastPressedKey != 52){
       brain.alpha *= 2;
-    }else if(c == 51 && lastPressedKey != 51){
+    }
+    else if(c == 51 && lastPressedKey != 51){
       brain.alpha *= 0.5;
-    }else if(c == 53 && lastPressedKey != 53){
+    }
+    else if(c == 53 && lastPressedKey != 53){
       outputLog("log"+logNumber);
       logNumber++;
-    }else if(c >= 97 && c <= 122 && !(lastPressedKey >= 97 && lastPressedKey <= 122)){
+    }
+    else if(c == 54 && lastPressedKey != 54){
+      smooth++;
+      if(smooth == 2){
+        smooth = 0;
+      }
+    }
+    else if(c >= 97 && c <= 122 && !(lastPressedKey >= 97 && lastPressedKey <= 122)){
       training = false;
       if(!typing){
         word = "";
@@ -75,7 +96,8 @@ void draw(){
       typing = true;
       word = (word+(char)(c)).toUpperCase();
       getBrainErrorFromLine(word,0,false);
-    }else if(c == 8 && lastPressedKey != 8){
+    }
+    else if(c == 8 && lastPressedKey != 8){
       training = false;
       if(typing && word.length() >= 1){
         word = word.substring(0,word.length()-1);
@@ -84,7 +106,8 @@ void draw(){
       getBrainErrorFromLine(word,0,false);
     }
     lastPressedKey = c;
-  }else{
+  }
+  else{
     lastPressedKey = -1;
   }
   if(training){
@@ -92,6 +115,7 @@ void draw(){
       train();
     }
   }
+  
   background(255);
   fill(0);
   textFont(font,48);
@@ -111,8 +135,7 @@ void draw(){
   text(o,20,400);
   fill(0);
   text("Step size:",20,500);
-  text(nf((float)(brain.alpha),0,4),20,550);
-  
+  text(nf((float)(brain.alpha),0,4),20,550);  
   text("Min Word Len: "+MINIMUM_WORD_LENGTH,20,650);
   text("Possible Languages:",20,700);
   for(int i = 0; i < countedLanguages.length; i++){
@@ -125,11 +148,13 @@ void draw(){
   if(typing){
     s = "HOW'D I DO?";
     fill(160,120,0);
-  }else{
+  }
+  else{
     if(lastOneWasCorrect){
       s = "RIGHT";
       fill(0,140,0);
-    }else{
+    }
+    else{
       s = "WRONG";
       fill(255,0,0);
     }
@@ -148,6 +173,10 @@ void draw(){
   text("3 to decrease step size.",ex,500);
   text("4 to increase step size.",ex,550);
   text("5 to output results: log"+logNumber,ex,600);
+  text("6 to toggle smoothing.",ex,650);
+  if(smooth == 1){
+    text("Smoothing is on.",ex,850);
+  }
   text("Current streak: "+streak,ex,900);
   text("Longest streak: "+longStreak,ex,950);
   
@@ -173,7 +202,8 @@ void train(){
     recentGuesses[iteration%guessWindow] = true;
     lastOneWasCorrect = true;
     streak++;
-  }else{
+  }
+  else{
     if(recentGuesses[iteration%guessWindow]){
       recentRightCount--;
     }
@@ -187,9 +217,11 @@ void train(){
     longTermResults[brain.topOutput][desiredOutput]++;
 
 }
+
 int binarySearch(int lang, int n){
   return binarySearch(lang,n,0,trainingData[lang].length-1);
 }
+
 int binarySearch(int lang, int n, int beg, int end){
   if(beg > end){
     return beg;
@@ -200,16 +232,20 @@ int binarySearch(int lang, int n, int beg, int end){
   int diff = n-Integer.parseInt(s.substring(s.lastIndexOf(",")+1,s.length()));
   if(diff == 0){
     return mid+1;
-  }else if(diff > 0){
+  }
+  else if(diff > 0){
     return binarySearch(lang,n,mid+1,end);
-  }else if(diff < 0){
+  }
+  else if(diff < 0){
     return binarySearch(lang,n,beg,mid-1);
   }
   return -1;
 }
+
 String percentify(double d){
   return nf((float)(d*100),0,2)+"%";
 }
+
 double getBrainErrorFromLine(String word, int desiredOutput, boolean train){
   double inputs[] = new double[INPUT_LAYER_HEIGHT];
   for(int i = 0; i < INPUT_LAYER_HEIGHT; i++){
@@ -233,40 +269,87 @@ double getBrainErrorFromLine(String word, int desiredOutput, boolean train){
   }
   return brain.useBrainGetError(inputs, desiredOutputs,train);
 }
+
 private void outputLog(String name){
+  PrintWriter results = null;
   try{
         int amountCorrect=0;
         int totalAnswers=0;
         int numberOfTimes;
         String resultLine;
-        PrintWriter results = createWriter("results/"+name+".txt");
-        results.print("      ");
-        for(int i = 0; i<LANGUAGE_COUNT; i++){
-          results.print(languages[i] + "   ");
+        results = createWriter("results/"+name+".txt");
+        int spacesNeeded;
+        
+        for(int t = 0; t<RESULT_CELL_LENGTH; t++){
+          results.print(" ");
+          
+          System.out.print(" ");
         }
+        
+        for(int i = 0; i<LANGUAGE_COUNT; i++){
+          results.print(languages[i]);
+          System.out.print(languages[i]);
+          spacesNeeded = RESULT_CELL_LENGTH-languages[i].length();
+          
+          for(int t = 0; t<spacesNeeded; t++){
+            results.print(" ");
+            
+            System.out.print(" ");
+          }
+        }
+        
         results.println();
         results.println();
-        for(int given = 0; given < LANGUAGE_COUNT; given++){
-          results.print(languages[given]+"  ");
+        
+        System.out.println();
+        System.out.println();
+        
+        for(int given = 0; given <= LANGUAGE_COUNT; given++){
+          results.print(languages[given]);
+          
+          System.out.print(languages[given]);
+          spacesNeeded = RESULT_CELL_LENGTH-languages[given].length();
+          
+          for(int t = 0; t<spacesNeeded; t++){
+            results.print(" ");
+            
+            System.out.print(" ");
+          }
           for(int answer = 0; answer < LANGUAGE_COUNT; answer++){ 
             
             numberOfTimes = longTermResults[answer][given];
-            results.print(longTermResults[answer][given]+",  ");
+            resultLine = longTermResults[answer][given] + "";
+            results.print(resultLine);
+            
+            System.out.print(resultLine);
             totalAnswers += numberOfTimes;
+            
+            spacesNeeded = RESULT_CELL_LENGTH-resultLine.length();
+            for(int t = 0; t<spacesNeeded; t++){
+              results.print(" ");
+              
+              System.out.print(" ");
+            }
             
             if(answer == given){
               amountCorrect += numberOfTimes;
             }            
           }
           results.println();
+          System.out.println();
         }
         
         double percentageCorrect = 100*amountCorrect/totalAnswers;
         results.println(percentageCorrect + "% Correct");
         results.println("Longest Streak:"+longStreak);
-        results.flush();
-        results.close();
+        
       }catch(Exception e){}
+      finally{
+        if(results != null){
+          results.flush();
+          results.close();
+        }
+      }
 }
 private void prepareExitHandler () {//'cuz stop() is apparently deprecated
   Runtime.getRuntime().addShutdownHook(new Thread(new Runnable(){
