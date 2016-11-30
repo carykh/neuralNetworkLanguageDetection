@@ -129,7 +129,7 @@ class Brain {
                 if (neurons[0][y] >= 0.5){
                     noStroke();
                     int ay = apY(0, y);
-                    double val = neurons[0][y];
+                    //double val = neurons[0][y]; // not used?
                     fill(255);
                     ellipse(0,ay * scaleUp, neuronSize * scaleUp, neuronSize * scaleUp);
                     fill(0);
