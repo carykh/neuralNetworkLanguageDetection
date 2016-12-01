@@ -175,7 +175,14 @@ void draw() {
     text("2 to do one training.", ex, 450);
     text("3 to decrease step size.", ex, 500);
     text("4 to increase step size.", ex, 550);
-
+    text("5 to output results: log"+logNumber,ex,600);
+    text("6 to toggle smoothing.",ex,650);
+    if(smooth == 1){
+      text("Smoothing is on.",ex,800);
+    }
+    text("Current streak: "+streak,ex,900);
+    text("Longest streak: "+longStreak,ex,950);
+    
     translate(550, 40);
     brain.drawBrain(55);
     lineAt++;
