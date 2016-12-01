@@ -46,7 +46,6 @@ GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefault
 int monitorWidth = gd.getDisplayMode().getWidth();
 int monitorHeight = gd.getDisplayMode().getHeight();
 
-
 void setup(){
   size((int)(monitorWidth*WINDOW_SCALE_SIZE),(int)(monitorHeight*WINDOW_SCALE_SIZE));
   //size((int)(700*WINDOW_SCALE_SIZE),(int)(400*WINDOW_SCALE_SIZE));
@@ -68,7 +67,7 @@ void setup(){
 }
 
 void draw(){
-  scale(WINDOW_SCALE_SIZE * 700 / 1915);
+  scale(WINDOW_SCALE_SIZE * monitorWidth / 1915);
   smooth(smooth);  
   
   if(keyPressed){
