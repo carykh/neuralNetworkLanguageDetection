@@ -26,6 +26,9 @@ boolean lastOneWasCorrect = false;
 String[] languages = {"Random","Key Mash","English","Spanish","French","German","Japanese",
 "Swahili","Mandarin","Esperanto","Dutch","Polish","Lojban"};
 int[] langSizes = new int[LANGUAGE_COUNT];
+void settings() {
+  size((int)(1920*WINDOW_SCALE_SIZE),(int)(1080*WINDOW_SCALE_SIZE));
+}
 void setup(){
   for(int i = 0; i < LANGUAGE_COUNT; i++){
     trainingData[i] = loadStrings("output"+i+".txt");
@@ -38,7 +41,6 @@ void setup(){
   font = loadFont("Helvetica-Bold-96.vlw"); 
   int[] bls = {INPUT_LAYER_HEIGHT,MIDDLE_LAYER_NEURON_COUNT,OUTPUT_LAYER_HEIGHT};
   brain = new Brain(bls,INPUTS_PER_CHAR, languages);
-  size((int)(1920*WINDOW_SCALE_SIZE),(int)(1080*WINDOW_SCALE_SIZE));
   frameRate(200);
 }
 
