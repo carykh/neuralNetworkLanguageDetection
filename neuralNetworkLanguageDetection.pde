@@ -48,11 +48,11 @@ String[]    languages = {
     "Lojban"//12
     };
 
-int[][] longTermResults = new int[LANGUAGE_COUNT][LANGUAGE_COUNT];
-int logNumber = 0;
-int streak = 0;
-int longStreak = 0;
-int smooth = 0;
+int[][]     longTermResults             = new int[LANGUAGE_COUNT][LANGUAGE_COUNT];
+int         logNumber                   = 0;
+int         streak                      = 0;
+int         longStreak                  = 0;
+int         smooth                      = 0;
 
 void setup() {
    //size((int)(1920 * WINDOW_SCALE_SIZE), (int)(1080 * WINDOW_SCALE_SIZE));
@@ -87,19 +87,22 @@ void draw() {
         if (c == 49 && lastPressedKey != 49) {
             training = !training;
             typing = false;
-        } else if (c == 50 && lastPressedKey != 50) {
+        } 
+        else if (c == 50 && lastPressedKey != 50) {
             training = false;
             typing = false;
             train();
-        } else if (c == 51 && lastPressedKey != 51) { brain.alpha *= 0.5; }
-        else if (c == 52 && lastPressedKey != 52)   { brain.alpha *= 2; }
-		else if(c == 53 && lastPressedKey != 53){
-        	outputLog("log"+logNumber);
+        } 
+        else if (c == 51 && lastPressedKey != 51) { brain.alpha *= 0.5; }
+        else if (c == 52 && lastPressedKey != 52) { brain.alpha *= 2; }
+		    else if (c == 53 && lastPressedKey != 53) {
+        	outputLog("log" + logNumber);
         	logNumber++;
       	}
-      	else if(c == 54 && lastPressedKey != 54){
-        	smooth++;
-          	if(smooth == 2){ smooth = 0; }
+      	else if (c == 54 && lastPressedKey != 54) {
+        	  smooth++;
+          	if(smooth == 2) { smooth = 0; }
+        }
         else if (c >= 97 && c <= 122 && !(lastPressedKey >= 97 && lastPressedKey <= 122)) {
             training = false;
             if(!typing) { word = ""; }
@@ -191,12 +194,12 @@ void train() {
     double error = getBrainErrorFromLine(word, desiredOutput, true);
 
     if (brain.topOutput == desiredOutput) {
-        if(!recentGuesses[iteration%guessWindow]) { recentRightCount++; }
-        recentGuesses[iteration%guessWindow] = true;
+        if(!recentGuesses[iteration % guessWindow]) { recentRightCount++; }
+        recentGuesses[iteration % guessWindow] = true;
         lastOneWasCorrect = true;
     } else {
-        if(recentGuesses[iteration%guessWindow])  { recentRightCount--; }
-        recentGuesses[iteration%guessWindow] = false;
+        if(recentGuesses[iteration % guessWindow])  { recentRightCount--; }
+        recentGuesses[iteration % guessWindow] = false;
         lastOneWasCorrect = false;
     }
 }
@@ -240,14 +243,14 @@ double getBrainErrorFromLine(String word, int desiredOutput, boolean train) {
 private void outputLog(String name){
   PrintWriter results = null;
   try{
-        int amountCorrect = 0;
-        int numberOfTimes;
-        double percentageOfTimes;
-        String resultLine;
-        results = createWriter("results/" + name + ".txt");
-        int spacesNeeded;
-        
-        for(int t = 0; t < RESULT_CELL_LENGTH; t++){
+      int amountCorrect = 0;
+      int numberOfTimes;
+      double percentageOfTimes;
+      String resultLine;
+      results = createWriter("results/" + name + ".txt");
+      int spacesNeeded;
+      
+      for(int t = 0; t < RESULT_CELL_LENGTH; t++){
           results.print(" ");
           
           //System.out.print(" ");
@@ -335,9 +338,9 @@ public static double round(double value, int places) {
     return bd.doubleValue();
 }
 
-private void prepareExitHandler () {//'cuz stop() is apparently deprecated
+private void prepareExitHandler() {//'cuz stop() is apparently deprecated
   Runtime.getRuntime().addShutdownHook(new Thread(new Runnable(){
-    public void run () {            
+    public void run() {            
       outputLog("final_log");      
     }
   }));
