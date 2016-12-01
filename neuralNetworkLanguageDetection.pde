@@ -1,16 +1,21 @@
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 float       WINDOW_SCALE_SIZE           = 0.5;
 int         MINIMUM_WORD_LENGTH         = 5;
 float       STARTING_AXON_VARIABILITY   = 1.0;
 int         TRAINS_PER_FRAME            = 20;
 PFont       font;
 Brain       brain;
-int         LANGUAGE_COUNT              = 13;
+int         LANGUAGE_COUNT              = 13;//Change when changing languages
 int         MIDDLE_LAYER_NEURON_COUNT   = 19;
 String[][]  trainingData                = new String[LANGUAGE_COUNT][];
 int         SAMPLE_LENGTH               = 15;
 int         INPUTS_PER_CHAR             = 27;
 int         INPUT_LAYER_HEIGHT          = INPUTS_PER_CHAR * SAMPLE_LENGTH + 1;
 int         OUTPUT_LAYER_HEIGHT         = LANGUAGE_COUNT + 1;
+int         RESULT_CELL_LENGTH          = 12;
+
 int         lineAt                      = 0;
 int         iteration                   = 0;
 int         guessWindow                 = 1000;
@@ -28,22 +33,29 @@ int[]       countedLanguages            = {0, 1, 2, 5, 6, 8, 11};
 boolean     lastOneWasCorrect           = false;
 int[]       langSizes                   = new int[LANGUAGE_COUNT];
 String[]    languages = {
-    "Random",
-    "Key Mash",
-    "English",
-    "Spanish",
-    "French",
-    "German",
-    "Japanese",
-    "Swahili",
-    "Mandarin",
-    "Esperanto",
-    "Dutch",
-    "Polish",
-    "Lojban"
+    "Random",//0
+    "Key Mash",//1
+    "English",//2
+    "Spanish",//3
+    "French",//4
+    "German",//5
+    "Japanese",//6
+    "Swahili",//7
+    "Mandarin",//8
+    "Esperanto",//9
+    "Dutch",//10
+    "Polish",//11
+    "Lojban"//12
     };
 
+int[][] longTermResults = new int[LANGUAGE_COUNT][LANGUAGE_COUNT];
+int logNumber = 0;
+int streak = 0;
+int longStreak = 0;
+int smooth = 0;
+
 void setup() {
+   //size((int)(1920 * WINDOW_SCALE_SIZE), (int)(1080 * WINDOW_SCALE_SIZE));
    for(int i = 0; i < LANGUAGE_COUNT; i++){
         trainingData[i] = loadStrings("output" + i + ".txt");
         String s = trainingData[i][trainingData[i].length-1];
@@ -59,6 +71,7 @@ void setup() {
             };
         brain = new Brain(bls, INPUTS_PER_CHAR, languages);
         frameRate(1024); // faster is better 200 -> 1024
+        prepareExitHandler();
 }
 
 void settings() {
@@ -80,6 +93,13 @@ void draw() {
             train();
         } else if (c == 51 && lastPressedKey != 51) { brain.alpha *= 0.5; }
         else if (c == 52 && lastPressedKey != 52)   { brain.alpha *= 2; }
+		else if(c == 53 && lastPressedKey != 53){
+        	outputLog("log"+logNumber);
+        	logNumber++;
+      	}
+      	else if(c == 54 && lastPressedKey != 54){
+        	smooth++;
+          	if(smooth == 2){ smooth = 0; }
         else if (c >= 97 && c <= 122 && !(lastPressedKey >= 97 && lastPressedKey <= 122)) {
             training = false;
             if(!typing) { word = ""; }
@@ -215,4 +235,110 @@ double getBrainErrorFromLine(String word, int desiredOutput, boolean train) {
     if (train) { iteration++; }
 
     return brain.useBrainGetError(inputs, desiredOutputs, train);
+}
+
+private void outputLog(String name){
+  PrintWriter results = null;
+  try{
+        int amountCorrect = 0;
+        int numberOfTimes;
+        double percentageOfTimes;
+        String resultLine;
+        results = createWriter("results/" + name + ".txt");
+        int spacesNeeded;
+        
+        for(int t = 0; t < RESULT_CELL_LENGTH; t++){
+          results.print(" ");
+          
+          //System.out.print(" ");
+        }
+        
+        for(int i = 0; i<LANGUAGE_COUNT; i++){
+          results.print(languages[i]);
+          //System.out.print(languages[i]);
+          spacesNeeded = RESULT_CELL_LENGTH - languages[i].length();
+          
+          for(int t = 0; t < spacesNeeded; t++){
+            results.print(" ");
+            
+            //System.out.print(" ");
+          }
+        }
+        
+        results.println();
+        results.println();
+        
+        //System.out.println();
+        //System.out.println();
+        
+        for(int given = 0; given < LANGUAGE_COUNT; given++){
+          results.print(languages[given]);
+          
+          //System.out.print(languages[given]);
+          spacesNeeded = RESULT_CELL_LENGTH - languages[given].length();
+          
+          for(int t = 0; t < spacesNeeded; t++){
+            results.print(" ");         
+            //System.out.print(" ");
+          }
+          for(int answer = 0; answer < LANGUAGE_COUNT; answer++){ 
+            
+            numberOfTimes = longTermResults[answer][given];
+            percentageOfTimes = round(((double)numberOfTimes) / ((double)iteration) * 100, 2);
+            resultLine = percentageOfTimes + "%";
+            results.print(resultLine);
+            
+           // System.out.print(resultLine);
+            
+            spacesNeeded = RESULT_CELL_LENGTH-resultLine.length();
+            for(int t = 0; t<spacesNeeded; t++){
+              results.print(" ");
+              
+             // System.out.print(" ");
+            }
+            
+            if(answer == given){
+              amountCorrect += numberOfTimes;
+            }            
+          }
+          results.println();
+          //System.out.println();
+        }
+        
+        double percentageCorrect = round(((double)amountCorrect) / ((double)iteration) * 100, 2);
+        results.println(percentageCorrect + "% Correct");
+        results.println("Longest Streak:"+longStreak);
+        results.println("Iteration #" + iteration);
+        
+        //System.out.println(percentageCorrect + "% Correct");
+        //System.out.println("Longest Streak:"+longStreak);
+        //System.out.println("Iteration #" + iteration);
+
+        
+        
+      }catch(Exception e){
+        System.out.println(e.toString());
+      }
+      finally{
+        if(results != null){
+          results.flush();
+          results.close();
+        }
+      }
+}
+
+public static double round(double value, int places) {
+    if (places < 0) throw new IllegalArgumentException();
+
+    BigDecimal bd = new BigDecimal(value);
+    bd = bd.setScale(places, RoundingMode.HALF_UP);
+    return bd.doubleValue();
+}
+
+private void prepareExitHandler () {//'cuz stop() is apparently deprecated
+  Runtime.getRuntime().addShutdownHook(new Thread(new Runnable(){
+    public void run () {            
+      outputLog("final_log");      
+    }
+  }));
 }
