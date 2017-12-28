@@ -28,7 +28,7 @@ String word = "-";
 int desiredOutput = 0;
 int lastPressedKey = -1;
 boolean typing = false;
-int[] countedLanguages = {2,4,5,8};
+int[] countedLanguages = {2, 8};
 boolean lastOneWasCorrect = false;
 String[] languages = {"Random","Key Mash","English","Spanish","French","German","Japanese",
 "Swahili","Mandarin","Esperanto","Dutch","Polish","Lojban"};
@@ -79,7 +79,9 @@ void draw(){
     else if(c == 50 && lastPressedKey != 50){
       training = false;
       typing = false;
-      train();
+      for (int i = 0; i < 10/*change this value if you want to change the amount of trainings*/; i++) { //for finding: asdfasdfasdf
+        train();
+      }
     }
     else if(c == 52 && lastPressedKey != 52){
       brain.alpha *= 2;
@@ -224,7 +226,7 @@ void train(){
     streak = 0;
   }
     longTermResults[brain.topOutput][desiredOutput]++;
-
+  
 }
 
 int binarySearch(int lang, int n){
