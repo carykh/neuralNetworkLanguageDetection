@@ -15,6 +15,7 @@ final int INPUTS_PER_CHAR = 27;
 final int INPUT_LAYER_HEIGHT = INPUTS_PER_CHAR*SAMPLE_LENGTH+1;
 final int OUTPUT_LAYER_HEIGHT = LANGUAGE_COUNT+1;
 final int RESULT_CELL_LENGTH = 12;
+final int TRAIN_TIMES = 10;
 
 PFont font;
 Brain brain;
@@ -79,7 +80,7 @@ void draw(){
     else if(c == 50 && lastPressedKey != 50){
       training = false;
       typing = false;
-      for (int i = 0; i < 10/*change this value if you want to change the amount of trainings*/; i++) { //for finding: asdfasdfasdf
+      for (int i = 0; i < TRAIN_TIMES; i++) { //for finding: asdfasdfasdf
         train();
       }
     }
